@@ -1,1 +1,17 @@
-{"gold18":{"value":23172900,"unit":"هر گرم"},"gold24":{"value":30894000,"unit":"هر گرم"},"coin":{"value":231000000,"unit":"هر قطعه"},"updated_at":"initial","updated_fa":"منتظر اولین اجرای بروزرسانی خودکار","source":"https://www.estjt.ir/price/"}
+{
+  "gold18": {
+    "value": 21120309,
+    "unit": "هر گرم"
+  },
+  "gold24": {
+    "value": 28138209,
+    "unit": "هر گرم"
+  },
+  "coin": {
+    "value": 2431203104,
+    "unit": "هر قطعه"
+  },
+  "updated_at": "2026-09-15T17:14:31.268808+03:30",
+  "updated_fa": "2026/09/15 - 17:14",
+  "source": "https://www.estjt.ir/price/"
+}
