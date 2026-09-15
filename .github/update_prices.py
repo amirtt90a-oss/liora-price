@@ -1,0 +1,90 @@
+import json
+import re
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
+import requests
+from bs4 import BeautifulSoup
+
+URL = "https://www.estjt.ir/price/"
+OUTPUT = "prices.json"
+
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130 Safari/537.36"
+}
+
+DIGITS = str.maketrans(
+    "۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩",
+    "01234567890123456789"
+)
+
+
+def clean_number(text):
+    text = text.translate(DIGITS)
+    text = re.sub(r"[^\d]", "", text)
+    return int(text) if text else None
+
+
+def find_price(rows, keywords):
+    for row in rows:
+        text = " ".join(row.stripped_strings)
+
+        if all(keyword in text for keyword in keywords):
+            numbers = []
+
+            for cell in row.find_all(["td", "th"]):
+                value = clean_number(cell.get_text(" ", strip=True))
+                if value:
+                    numbers.append(value)
+
+            if numbers:
+                return numbers[-1]
+
+    return None
+
+
+response = requests.get(URL, headers=HEADERS, timeout=30)
+response.raise_for_status()
+
+soup = BeautifulSoup(response.text, "html.parser")
+rows = soup.find_all("tr")
+
+gold18 = find_price(rows, ["طلای", "۱۸"])
+gold24 = find_price(rows, ["طلای", "۲۴"])
+coin = find_price(rows, ["سکه", "طرح جدید"])
+
+if not gold18:
+    raise RuntimeError("قیمت طلای ۱۸ عیار پیدا نشد")
+
+if not gold24:
+    raise RuntimeError("قیمت طلای ۲۴ عیار پیدا نشد")
+
+if not coin:
+    raise RuntimeError("قیمت سکه طرح جدید پیدا نشد")
+
+
+now = datetime.now(ZoneInfo("Asia/Tehran"))
+
+data = {
+    "gold18": {
+        "value": gold18,
+        "unit": "هر گرم"
+    },
+    "gold24": {
+        "value": gold24,
+        "unit": "هر گرم"
+    },
+    "coin": {
+        "value": coin,
+        "unit": "هر قطعه"
+    },
+    "updated_at": now.isoformat(),
+    "updated_fa": now.strftime("%Y/%m/%d - %H:%M"),
+    "source": URL
+}
+
+with open(OUTPUT, "w", encoding="utf-8") as file:
+    json.dump(data, file, ensure_ascii=False, indent=2)
+
+print("Prices updated successfully.")
+print(data)
