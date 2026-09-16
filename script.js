@@ -1,5 +1,96 @@
-const state={prices:null};const fa=s=>String(s).replace(/\d/g,d=>"۰۱۲۳۴۵۶۷۸۹"[d]);const toman=n=>fa(Math.round(Number(n)||0).toLocaleString("en-US"))+" تومان";
-async function load(){const e=document.getElementById("error");e.hidden=true;try{const r=await fetch("prices.json?x="+Date.now(),{cache:"no-store"});if(!r.ok)throw 0;state.prices=await r.json();render()}catch{x=0;e.hidden=false;e.textContent="دریافت قیمت‌ها انجام نشد. دوباره بروزرسانی را بزن."}}
-function render(){const p=state.prices,items=[["طلای ۱۸ عیار",p.gold18,"هر گرم","۰.۲٪"],["طلای ۲۴ عیار",p.gold24,"هر گرم","۰.۲٪"],["سکه تمام طرح جدید",p.coin,"هر قطعه","۰.۴٪"]];document.getElementById("cards").innerHTML=items.map(x=>`<article class="card"><span class="tag">${x[0]}</span><div class="value">${toman(x[1].value)}</div><small>${x[2]} · تومان</small><span class="change">▲ ${x[3]}</span></article>`).join("");let u=p.updated_fa||p.updated_at||"—";document.getElementById("updated").textContent="آخرین بروزرسانی: "+u;document.getElementById("footerUpdated").textContent=u;calc()}
-function calc(){if(!state.prices)return;let k=document.getElementById("karat").value,price=+(k==="18"?state.prices.gold18.value:state.prices.gold24.value),w=+document.getElementById("weight").value||0,wp=+document.getElementById("wage").value||0,pp=+document.getElementById("profit").value||0,tp=+document.getElementById("tax").value||0,raw=price*w,wage=raw*wp/100,profit=(raw+wage)*pp/100,tax=(wage+profit)*tp/100;document.getElementById("basePrice").textContent=toman(price);document.getElementById("raw").textContent=toman(raw);document.getElementById("wageValue").textContent=toman(wage);document.getElementById("profitValue").textContent=toman(profit);document.getElementById("taxValue").textContent=toman(tax);document.getElementById("total").textContent=toman(raw+wage+profit+tax)}
-document.getElementById("refresh").onclick=load;document.getElementById("calculate").onclick=calc;["karat","weight","wage","profit","tax"].forEach(id=>document.getElementById(id).addEventListener("input",calc));load();
+let prices = {};
+
+function formatPrice(value) {
+  return Number(value).toLocaleString("fa-IR") + " تومان";
+}
+
+async function loadPrices() {
+  try {
+    const response = await fetch("prices.json?x=" + Date.now());
+    prices = await response.json();
+
+    document.getElementById("gold18").textContent =
+      formatPrice(prices.gold18.value);
+
+    document.getElementById("gold24").textContent =
+      formatPrice(prices.gold24.value);
+
+    document.getElementById("coin").textContent =
+      formatPrice(prices.coin.value);
+
+  } catch (error) {
+    document.getElementById("gold18").textContent = "خطا";
+    document.getElementById("gold24").textContent = "خطا";
+    document.getElementById("coin").textContent = "خطا";
+  }
+}
+
+
+function calculateGold() {
+
+  const type = document.getElementById("goldType").value;
+  const weight = Number(document.getElementById("weight").value);
+  const wage = Number(document.getElementById("wage").value) || 0;
+  const profit = Number(document.getElementById("profit").value) || 0;
+  const tax = Number(document.getElementById("tax").value) || 0;
+
+  const result = document.getElementById("priceResult");
+
+  if (!weight || weight <= 0) {
+    result.textContent = "وزن را وارد کنید";
+    return;
+  }
+
+  if (!prices[type]) {
+    result.textContent = "قیمت هنوز دریافت نشده";
+    return;
+  }
+
+  const base = prices[type].value * weight;
+  const wageAmount = base * wage / 100;
+  const profitAmount = (base + wageAmount) * profit / 100;
+  const subtotal = base + wageAmount + profitAmount;
+  const taxAmount = subtotal * tax / 100;
+  const finalPrice = subtotal + taxAmount;
+
+  result.innerHTML =
+    "ارزش طلا: " + formatPrice(base) +
+    "<br>اجرت: " + formatPrice(wageAmount) +
+    "<br>سود: " + formatPrice(profitAmount) +
+    "<br>مالیات: " + formatPrice(taxAmount) +
+    "<hr>" +
+    "<strong>قیمت نهایی: " + formatPrice(finalPrice) + "</strong>";
+}
+
+
+function convertKarat() {
+
+  const weight = Number(document.getElementById("karatWeight").value);
+  const fromKarat = Number(document.getElementById("fromKarat").value);
+  const toKarat = Number(document.getElementById("toKarat").value);
+
+  const result = document.getElementById("karatResult");
+
+  if (
+    weight <= 0 ||
+    fromKarat <= 0 ||
+    toKarat <= 0
+  ) {
+    result.textContent = "همه مقادیر را درست وارد کنید";
+    return;
+  }
+
+  const newWeight =
+    weight * fromKarat / toKarat;
+
+  result.innerHTML =
+    "<strong>" +
+    newWeight.toLocaleString("fa-IR", {
+      minimumFractionDigits: 3,
+      maximumFractionDigits: 3
+    }) +
+    " گرم</strong>";
+}
+
+
+loadPrices();
