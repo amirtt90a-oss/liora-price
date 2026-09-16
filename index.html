@@ -1,125 +1,407 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Liora Price | قیمت طلا</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Liora Price | قیمت لحظه‌ای طلا و سکه</title>
+    <meta name="description" content="قیمت لحظه‌ای طلای ۱۸ عیار، ۲۴ عیار و سکه به همراه ماشین حساب طلا">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<header>
-  <div class="logo">LIORA <span>PRICE</span></div>
-  <nav>
-    <a href="#prices">قیمت‌ها</a>
-    <a href="#calculator">ماشین حساب</a>
-  </nav>
+<header class="header">
+    <div class="container nav">
+        <a href="#" class="logo">
+            <span class="logo-mark">L</span>
+            <span>Liora Price</span>
+        </a>
+
+        <nav>
+            <a href="#prices">قیمت‌ها</a>
+            <a href="#calculator">ماشین حساب</a>
+            <a href="#about">درباره</a>
+        </nav>
+    </div>
 </header>
+
 
 <main>
 
-<section class="hero">
-  <h1>قیمت طلا، ساده و سریع</h1>
-  <p>قیمت طلا و سکه با بروزرسانی خودکار</p>
-  <small>منبع: اتحادیه طلا و جواهر تهران</small>
-</section>
+    <!-- HERO -->
+    <section class="hero">
+        <div class="container hero-grid">
 
-<section id="prices" class="prices">
+            <div class="hero-content">
+                <div class="eyebrow">LIORA PRICE</div>
 
-  <div class="price-card">
-    <span>طلای ۱۸ عیار</span>
-    <strong id="gold18">در حال دریافت...</strong>
-    <small>هر گرم</small>
-  </div>
+                <h1>
+                    قیمت لحظه‌ای
+                    <span>طلا، سکه و بیشتر...</span>
+                </h1>
 
-  <div class="price-card">
-    <span>طلای ۲۴ عیار</span>
-    <strong id="gold24">در حال دریافت...</strong>
-    <small>هر گرم</small>
-  </div>
+                <p>
+                    قیمت‌های به‌روز طلا و سکه، همراه با ابزارهای کاربردی
+                    برای محاسبه سریع و دقیق‌تر.
+                </p>
 
-  <div class="price-card">
-    <span>سکه تمام طرح جدید</span>
-    <strong id="coin">در حال دریافت...</strong>
-    <small>هر قطعه</small>
-  </div>
+                <div class="source-line">
+                    منبع قیمت:
+                    <strong>اتحادیه طلا و جواهر تهران</strong>
+                </div>
 
-</section>
+                <div class="hero-buttons">
+                    <a href="#prices" class="gold-btn">مشاهده قیمت‌ها</a>
+                    <a href="#calculator" class="dark-btn">ماشین حساب</a>
+                </div>
+            </div>
 
-<section id="calculator" class="calculator">
 
-  <h2>ماشین حساب طلا</h2>
-  <p class="subtitle">محاسبه قیمت و تبدیل عیار</p>
+            <div class="hero-art">
+                <div class="coin coin-back"></div>
+                <div class="coin coin-front">
+                    <span>LIORA</span>
+                    <small>GOLD</small>
+                </div>
+                <div class="gold-bar">
+                    <span>999.9</span>
+                    <small>FINE GOLD</small>
+                </div>
+            </div>
 
-  <div class="calc-box">
+        </div>
+    </section>
 
-    <h3>محاسبه قیمت طلا</h3>
 
-    <label>نوع طلا</label>
-    <select id="goldType">
-      <option value="gold18">طلای ۱۸ عیار</option>
-      <option value="gold24">طلای ۲۴ عیار</option>
-    </select>
+    <!-- PRICES -->
+    <section id="prices" class="section">
+        <div class="container">
 
-    <label>وزن (گرم)</label>
-    <input id="weight" type="number" placeholder="مثلاً 5" step="0.001">
+            <div class="section-heading">
+                <div>
+                    <span class="section-label">LIVE PRICES</span>
+                    <h2>قیمت‌های امروز</h2>
+                </div>
 
-    <label>اجرت ساخت (%)</label>
-    <input id="wage" type="number" value="0">
+                <div class="update-status">
+                    <span class="status-dot"></span>
+                    <span id="updateText">در حال دریافت قیمت...</span>
+                </div>
+            </div>
 
-    <label>سود فروش (%)</label>
-    <input id="profit" type="number" value="0">
 
-    <label>مالیات (%)</label>
-    <input id="tax" type="number" value="0">
+            <div class="price-grid">
 
-    <button onclick="calculateGold()">محاسبه قیمت</button>
+                <div class="price-card featured">
+                    <div class="card-top">
+                        <div class="icon gold-icon">Au</div>
+                        <div>
+                            <span class="card-label">طلای ۱۸ عیار</span>
+                            <h3>عیار ۷۵۰</h3>
+                        </div>
+                    </div>
 
-    <div id="priceResult" class="result">
-      مبلغ نهایی اینجا نمایش داده می‌شود
-    </div>
+                    <div class="price-value">
+                        <span id="gold18">---</span>
+                        <small>تومان</small>
+                    </div>
 
-  </div>
+                    <div class="price-unit">هر گرم</div>
+                </div>
 
-  <div class="calc-box">
 
-    <h3>تبدیل عیار طلا</h3>
+                <div class="price-card">
+                    <div class="card-top">
+                        <div class="icon">Au</div>
+                        <div>
+                            <span class="card-label">طلای ۲۴ عیار</span>
+                            <h3>عیار ۹۹۹</h3>
+                        </div>
+                    </div>
 
-    <label>وزن طلا (گرم)</label>
-    <input id="karatWeight" type="number" placeholder="مثلاً 12" step="0.001">
+                    <div class="price-value">
+                        <span id="gold24">---</span>
+                        <small>تومان</small>
+                    </div>
 
-    <label>عیار فعلی</label>
-    <input id="fromKarat" type="number" value="750">
+                    <div class="price-unit">هر گرم</div>
+                </div>
 
-    <label>عیار مقصد</label>
-    <input id="toKarat" type="number" value="740">
 
-    <button onclick="convertKarat()">تبدیل عیار</button>
+                <div class="price-card">
+                    <div class="card-top">
+                        <div class="icon coin-icon">◉</div>
+                        <div>
+                            <span class="card-label">سکه</span>
+                            <h3>طرح جدید</h3>
+                        </div>
+                    </div>
 
-    <div id="karatResult" class="result">
-      وزن معادل اینجا نمایش داده می‌شود
-    </div>
+                    <div class="price-value">
+                        <span id="coin">---</span>
+                        <small>تومان</small>
+                    </div>
 
-    <p class="formula">
-      وزن جدید = وزن × عیار فعلی ÷ عیار مقصد
-    </p>
+                    <div class="price-unit">هر قطعه</div>
+                </div>
 
-  </div>
+            </div>
 
-</section>
+            <div class="last-update">
+                آخرین بروزرسانی:
+                <strong id="lastUpdate">---</strong>
+            </div>
 
-<section class="notice">
-  <h3>توجه</h3>
-  <p>محاسبات برای برآورد سریع هستند. مبلغ نهایی خرید یا فروش را با فاکتور فروشنده بررسی کنید.</p>
-</section>
+        </div>
+    </section>
+
+
+    <!-- CALCULATOR -->
+    <section id="calculator" class="section calculator-section">
+        <div class="container">
+
+            <div class="section-heading centered">
+                <span class="section-label">CALCULATOR</span>
+                <h2>ماشین حساب طلا</h2>
+                <p>
+                    قیمت تقریبی طلا را بر اساس وزن، اجرت، سود و مالیات محاسبه کنید.
+                </p>
+            </div>
+
+
+            <div class="calculator-box">
+
+                <div class="calc-form">
+
+                    <div class="input-group">
+                        <label for="goldType">نوع طلا</label>
+
+                        <select id="goldType">
+                            <option value="gold18">طلای ۱۸ عیار</option>
+                            <option value="gold24">طلای ۲۴ عیار</option>
+                        </select>
+                    </div>
+
+
+                    <div class="input-group">
+                        <label for="weight">وزن (گرم)</label>
+                        <input
+                            id="weight"
+                            type="number"
+                            min="0"
+                            step="0.001"
+                            placeholder="مثلاً 5"
+                        >
+                    </div>
+
+
+                    <div class="input-group">
+                        <label for="wage">اجرت ساخت (%)</label>
+                        <input
+                            id="wage"
+                            type="number"
+                            min="0"
+                            step="0.1"
+                            value="0"
+                        >
+                    </div>
+
+
+                    <div class="input-group">
+                        <label for="profit">سود فروش (%)</label>
+                        <input
+                            id="profit"
+                            type="number"
+                            min="0"
+                            step="0.1"
+                            value="0"
+                        >
+                    </div>
+
+
+                    <div class="input-group">
+                        <label for="tax">مالیات (%)</label>
+                        <input
+                            id="tax"
+                            type="number"
+                            min="0"
+                            step="0.1"
+                            value="0"
+                        >
+                    </div>
+
+                </div>
+
+
+                <div class="calc-result">
+
+                    <div class="result-title">
+                        <span>نتیجه محاسبه</span>
+                        <span class="result-gold">تومان</span>
+                    </div>
+
+                    <div class="result-row">
+                        <span>ارزش خام طلا</span>
+                        <strong id="baseAmount">۰ تومان</strong>
+                    </div>
+
+                    <div class="result-row">
+                        <span>اجرت</span>
+                        <strong id="wageAmount">۰ تومان</strong>
+                    </div>
+
+                    <div class="result-row">
+                        <span>سود فروش</span>
+                        <strong id="profitAmount">۰ تومان</strong>
+                    </div>
+
+                    <div class="result-row">
+                        <span>مالیات</span>
+                        <strong id="taxAmount">۰ تومان</strong>
+                    </div>
+
+                    <div class="final-result">
+                        <span>قیمت نهایی</span>
+                        <strong id="finalAmount">۰ تومان</strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="notice">
+                <div class="notice-icon">!</div>
+                <div>
+                    <strong>توجه</strong>
+                    <p>
+                        محاسبات این بخش تقریبی است و برای برآورد سریع مبلغ خرید
+                        طراحی شده است. برای خرید یا فروش، مبلغ نهایی را با فاکتور
+                        و قیمت اعلامی فروشنده بررسی کنید.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- KARAT CONVERTER -->
+    <section class="section converter-section">
+        <div class="container">
+
+            <div class="section-heading centered">
+                <span class="section-label">KARAT CONVERTER</span>
+                <h2>تبدیل عیار طلا</h2>
+                <p>
+                    وزن معادل طلا را بین عیارهای ۷۴۰ و ۷۵۰ محاسبه کنید.
+                </p>
+            </div>
+
+
+            <div class="converter-box">
+
+                <div class="converter-inputs">
+
+                    <div class="input-group">
+                        <label for="karatWeight">وزن طلا (گرم)</label>
+                        <input
+                            id="karatWeight"
+                            type="number"
+                            min="0"
+                            step="0.001"
+                            placeholder="مثلاً 12"
+                        >
+                    </div>
+
+
+                    <div class="input-group">
+                        <label for="fromKarat">عیار فعلی</label>
+
+                        <select id="fromKarat">
+                            <option value="750">۷۵۰</option>
+                            <option value="740">۷۴۰</option>
+                        </select>
+                    </div>
+
+
+                    <div class="converter-arrow">←</div>
+
+
+                    <div class="input-group">
+                        <label for="toKarat">عیار مقصد</label>
+
+                        <select id="toKarat">
+                            <option value="740">۷۴۰</option>
+                            <option value="750">۷۵۰</option>
+                        </select>
+                    </div>
+
+                </div>
+
+
+                <div class="conversion-result">
+                    <span>وزن معادل</span>
+
+                    <div>
+                        <strong id="convertedWeight">۰</strong>
+                        <small>گرم</small>
+                    </div>
+
+                    <p>
+                        فرمول:
+                        وزن اولیه × عیار فعلی ÷ عیار مقصد
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- ABOUT -->
+    <section id="about" class="about-section">
+        <div class="container about-content">
+
+            <span class="section-label">ABOUT LIORA</span>
+
+            <h2>طلا، فقط یک فلز نیست</h2>
+
+            <p>
+                یک سرمایه است؛ چیزی که ارزش آن با زمان، بازار و انتخاب درست
+                معنا پیدا می‌کند.
+            </p>
+
+            <div class="signature">Liora Price</div>
+
+        </div>
+    </section>
 
 </main>
 
-<footer>
-  <strong>LIORA PRICE</strong>
-  <p>منبع قیمت: اتحادیه طلا و جواهر تهران</p>
+
+<footer class="footer">
+    <div class="container footer-inner">
+
+        <div>
+            <strong>Liora Price</strong>
+            <span>ابزار ساده برای مشاهده و محاسبه قیمت طلا</span>
+        </div>
+
+        <div>
+            منبع قیمت:
+            <strong></strong>
+        </div>
+
+    </div>
 </footer>
+
 
 <script src="script.js"></script>
 
