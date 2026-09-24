@@ -250,8 +250,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     loadPrices();
 
-    // یک بار دیگر هر ۵ دقیقه قیمت موجود در سایت را بررسی می‌کند.
-    // منبع اصلی قیمت توسط GitHub Actions به‌روزرسانی می‌شود.
-    setInterval(loadPrices, 5 * 60 * 1000);
+    // هر ۱ دقیقه قیمت موجود در سایت را بررسی می‌کند.
+    // منبع اصلی قیمت توسط زمان‌بندی GitHub به‌روزرسانی می‌شود.
+    setInterval(loadPrices, 60 * 1000);
 
 });
