@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>قیمت طلا و ماشین حساب</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f5f1;--card:#fff;--ink:#1c2420;--mute:#6b756f;--line:#dfe3dc;--gold:#9a6b12;--buy:#0f6b4f;--sell:#a63a2b;--acc:#0f6b4f}
+@media (prefers-color-scheme:dark){:root{--bg:#111815;--card:#192220;--ink:#e9eee9;--mute:#93a099;--line:#2a3733;--gold:#e0b04a;--buy:#4cc79a;--sell:#ee8a78;--acc:#4cc79a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.7 Vazirmatn,Tahoma,sans-serif}
+main{max-width:980px;margin:0 auto;padding:20px 14px 40px}
+h1{font-size:1.5rem;margin:0}h2{font-size:1.05rem;margin:0 0 12px}
+header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+#st{font-size:.85rem;color:var(--mute)}#st.err{color:var(--sell)}
+section{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:9px 6px;text-align:right;border-bottom:1px solid var(--line)}
+th{font-weight:600;color:var(--mute);font-size:.85rem}tr:last-child td{border:0}
+td.n{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.b{color:var(--buy)}.s{color:var(--sell)}.u{font-size:.75rem;color:var(--mute);font-weight:400}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+label{display:block;font-size:.85rem;color:var(--mute);margin:10px 0 3px}
+input,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--ink);font:inherit}
+input:focus,select:focus{outline:2px solid var(--acc);outline-offset:1px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.out{margin-top:14px;border-top:2px solid var(--gold);padding-top:10px}
+.out div{display:flex;justify-content:space-between;gap:8px;padding:3px 0}
+.out .t{font-size:1.15rem;font-weight:800;color:var(--gold)}
+.mini td,.mini th{padding:5px 6px;font-size:.9rem}
+small{color:var(--mute)}
+.call{display:block;background:#0f6b4f;color:#fff;text-align:center;padding:12px 14px;border-radius:10px;margin-bottom:16px;font-weight:600;text-decoration:none}.call b{font-weight:800;white-space:nowrap;direction:ltr;unicode-bidi:embed}.call:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+<a class="call" href="tel:09193020016">خرید | فروش طلا و نقره معامله مطمئن / تماس و استعلام <b>09193020016</b></a>
+<header><h1>قیمت طلا، نقره و دلار</h1><div id="st">در حال دریافت…</div></header>
+
+<section>
+<h2>قیمت‌ها (تومان)</h2>
+<table><thead><tr><th>مورد</th><th>خرید</th><th>فروش</th></tr></thead><tbody id="rows"></tbody></table>
+</section>
+
+<div class="grid">
+<section>
+<h2>ماشین حساب قیمت طلا</h2>
+<div class="row2">
+<div><label for="w">وزن (گرم)</label><input id="w" inputmode="decimal" placeholder="مثلاً ۵"></div>
+<div><label for="j">اجرت (درصد)</label><input id="j" inputmode="decimal" placeholder="مثلاً ۱۸"></div>
+</div>
+<div class="row2">
+<div><label for="k">عیار</label><input id="k" inputmode="decimal" placeholder="مثلاً ۷۵۰ یا ۱۸"></div>
+<div><label for="side">قیمت پایه</label><select id="side"><option value="buy">خرید</option><option value="sell">فروش</option></select></div>
+</div>
+<label for="ov">قیمت هر گرم ۱۸ عیار (تومان، اختیاری)</label>
+<input id="ov" inputmode="decimal" placeholder="خالی = قیمت زنده">
+<div class="out" id="o1"></div>
+</section>
+
+<section>
+<h2>تبدیل عیار</h2>
+<label for="w2">وزن (گرم)</label><input id="w2" inputmode="decimal" placeholder="مثلاً ۱۰">
+<div class="row2">
+<div><label for="f">از عیار</label><input id="f" inputmode="decimal" placeholder="مثلاً ۷۵۰"></div>
+<div><label for="t">به عیار</label><input id="t" inputmode="decimal" placeholder="مثلاً ۷۴۰"></div>
+</div>
+<div class="out" id="o2"></div>
+<table class="mini" id="eq"></table>
+</section>
+</div>
+<small>عیار را می‌توان به صورت ۷۵۰ یا ۱۸ وارد کرد. این صفحه فقط ابزار محاسبه است و توصیه مالی نیست.</small>
+<a class="call" style="margin:16px 0 0" href="tel:09193020016">خرید | فروش طلا و نقره معامله مطمئن / تماس و استعلام <b>09193020016</b></a>
+</main>
+
+<script>
+const CONFIG={
+  PROXY_URL:"",                                   // آدرس Cloudflare Worker (اختیاری)
+  DATA_URL:"prices.json",   // فایلی که GitHub Action هر ۵ دقیقه بروز می‌کند
+  REFRESH_SEC:60,
+  SELL_DISCOUNT:{gold:1.5,silver:5,fx:1.5,coin:1.5} // درصد کمتر برای قیمت فروش
+};
+const ITEMS=[
+  {k:"geram18",n:"طلای ۱۸ عیار (گرم)",g:"gold"},
+  {k:"geram24",n:"طلای ۲۴ عیار (گرم)",g:"gold"},
+  {k:"silver_999",n:"نقره ۹۹۹ (گرم)",g:"silver"},
+  {k:"price_dollar_rl",n:"دلار",g:"fx"},
+  {k:"sekee",n:"سکه تمام (امامی)",g:"coin"},
+  {k:"sekeb",n:"سکه بهار آزادی",g:"coin"}
+];
+let P={};            // قیمت‌ها به ریال
+const $=id=>document.getElementById(id);
+const num=s=>{s=String(s||"").replace(/[۰-۹]/g,d=>"۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[٫،,\/]/g,".");return parseFloat(s)};
+const fa=(n,d=0)=>n.toLocaleString("fa-IR",{maximumFractionDigits:d});
+const toman=r=>r/10;
+const sell=(r,g)=>r*(1-CONFIG.SELL_DISCOUNT[g]/100);
+const karat=v=>{const n=num(v);return n>0&&n<=24?n*1000/24:n};   // 18 → 750
+
+async function load(){
+  for(const u of [CONFIG.PROXY_URL,CONFIG.DATA_URL].filter(Boolean)){
+    try{
+      const j=await (await fetch(u+(u.includes("?")?"&":"?")+"t="+Date.now(),{cache:"no-store"})).json();
+      const c=j.prices||j.current||j,out={};let ok=0;
+      for(const it of ITEMS){
+        const o=c[it.k],v=(o&&typeof o==="object")?(o.p!==undefined?o.p:o.price):o;
+        const n=parseFloat(String(v||"").replace(/,/g,""));
+        if(n>0){out[it.k]=n;ok++}
+      }
+      if(ok)return {p:out,t:j.updated?new Date(j.updated):new Date()};
+    }catch(e){}
+  }
+  return null;
+}
+
+function drawRows(){
+  $("rows").innerHTML=ITEMS.map(it=>{
+    const r=P[it.k];
+    return `<tr><td>${it.n}</td><td class="n b">${r?fa(Math.round(toman(r))):"—"}</td><td class="n s">${r?fa(Math.round(toman(sell(r,it.g)))):"—"}</td></tr>`;
+  }).join("");
+}
+
+function calc(){
+  const w=num($("w").value),j=num($("j").value)||0,K=karat($("k").value),ov=num($("ov").value);
+  let base=ov>0?ov*10:P.geram18;
+  if(!base){$("o1").innerHTML="<small>قیمت زنده در دسترس نیست؛ قیمت ۱۸ عیار را دستی وارد کنید.</small>";return}
+  if(!(ov>0)&&$("side").value==="sell")base=sell(base,"gold");
+  if(!(w>0)||!(K>0)){$("o1").innerHTML="<small>وزن و عیار را وارد کنید.</small>";return}
+  const pg=base*K/750, raw=w*pg, ojg=pg*j/100, oj=w*ojg;
+  const row=(a,b,c)=>`<div${c?` class="${c}"`:""}><span>${a}</span><span>${b} تومان</span></div>`;
+  $("o1").innerHTML=row("قیمت هر گرم این عیار",fa(Math.round(toman(pg))))
+    +row("قیمت طلای خام",fa(Math.round(toman(raw))))
+    +row("اجرت هر گرم",fa(Math.round(toman(ojg))))
+    +row("مجموع اجرت",fa(Math.round(toman(oj))))
+    +row("قیمت نهایی",fa(Math.round(toman(raw+oj))),"t");
+}
+
+function conv(){
+  const w=num($("w2").value),f=karat($("f").value),t=karat($("t").value);
+  if(!(w>0)||!(f>0)||!(t>0)){$("o2").innerHTML="<small>وزن و عیارها را وارد کنید.</small>";$("eq").innerHTML="";return}
+  const pure=w*f/1000;
+  $("o2").innerHTML=`<div class="t"><span>${fa(w)} گرم ${fa(f,1)}</span><span>${fa(w*f/t,3)} گرم ${fa(t,1)}</span></div><div><span>طلای خالص (۱۰۰۰)</span><span>${fa(pure,3)} گرم</span></div>`;
+  $("eq").innerHTML="<tr><th>عیار</th><th>وزن معادل (گرم)</th></tr>"+[999,916,900,875,750,740,585,500].map(k=>`<tr><td>${fa(k)}</td><td>${fa(pure*1000/k,3)}</td></tr>`).join("");
+}
+
+["w","j","k","side","ov"].forEach(i=>$(i).addEventListener("input",calc));
+["w2","f","t"].forEach(i=>$(i).addEventListener("input",conv));
+
+let left=0,last=null,fail=false;
+async function refresh(){
+  const d=await load();
+  fail=!d;
+  if(d){P=d.p;last=d.t}
+  drawRows();calc();conv();left=CONFIG.REFRESH_SEC;tick();
+}
+function tick(){
+  const el=$("st");
+  if(!last){el.className="err";el.textContent="اتصال به منبع قیمت برقرار نشد؛ تلاش مجدد تا "+fa(left)+" ثانیه";return}
+  const age=Math.round((Date.now()-last)/60000),bad=fail||age>20;
+  const hm=last.toLocaleTimeString("fa-IR",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Tehran"});
+  el.className=bad?"err":"";
+  el.textContent="آخرین بروزرسانی: ساعت "+hm+(bad?" (بروز نشده)":"");
+}
+setInterval(()=>{left--;if(left<=0)refresh();else tick()},1000);
+refresh();
+</script>
+</body>
+</html>
