@@ -90,7 +90,7 @@ small{color:var(--mute)}
 <script src="faq.js"></script>
 <script>
 const CONFIG={
-  PROXY_URL:"https://https://gold-price943.akant4amir.workers.dev//",   // آدرس Cloudflare Worker
+  PROXY_URL:"https://gold-price943.akant4amir.workers.dev/",   // آدرس Cloudflare Worker
   DATA_URL:"prices.json",   // فایلی که GitHub Action هر ۵ دقیقه بروز می‌کند
   REFRESH_SEC:60,
   SELL_DISCOUNT:{gold:1.5,silver:5,fx:1.5,coin:1.5} // درصد کمتر برای قیمت فروش
@@ -114,7 +114,7 @@ const karat=v=>{const n=num(v);return n>0&&n<=24?n*1000/24:n};   // 18 → 750
 async function load(){
   for(const u of [CONFIG.PROXY_URL,CONFIG.DATA_URL].filter(Boolean)){
     try{
-      const j=await (await fetch(u+(u.includes("?")?"&":"?")+"t="+Date.now(),{cache:"no-store"})).json();
+      const j=await (await fetch(u+(u.includes("?")?"&":"?")+"t="+Date.now(),{cache:"no-store",signal:AbortSignal.timeout(6000)})).json();
       const c=j.prices||j.current||j,out={};let ok=0;
       for(const it of ITEMS){
         const o=c[it.k],v=(o&&typeof o==="object")?(o.p!==undefined?o.p:o.price):o;
@@ -126,6 +126,7 @@ async function load(){
         let t=null;
         if(j.priceTs){const d=new Date(String(j.priceTs).trim().replace(" ","T")+"+03:30");if(!isNaN(d))t=d}
         if(!t)t=j.updated?new Date(j.updated):new Date();
+        try{localStorage.setItem("pc",JSON.stringify({p:out,t:+t}))}catch(e){}
         return {p:out,t};
       }
     }catch(e){}
@@ -233,6 +234,9 @@ $("qq").addEventListener("keydown",e=>{if(e.key==="Enter"){$("sg").innerHTML="";
 
 let left=0,last=null,fail=false;
 async function refresh(){
+  if(!last){ // نمایش فوری آخرین قیمت ذخیره‌شده تا قیمت تازه برسد
+    try{const c=JSON.parse(localStorage.getItem("pc")||"null");if(c&&c.p){P=c.p;last=new Date(c.t);drawRows();calc();tick()}}catch(e){}
+  }
   const d=await load();
   fail=!d;
   if(d){P=d.p;last=d.t}
