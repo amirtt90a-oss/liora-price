@@ -123,11 +123,12 @@ async function load(){
       }
       if(ok){
         // زمان واقعی قیمت (tgju به وقت تهران می‌دهد)؛ اگر نبود، زمان فایل
-        let t=null;
-        if(j.priceTs){const d=new Date(String(j.priceTs).trim().replace(" ","T")+"+03:30");if(!isNaN(d))t=d}
-        if(!t)t=j.updated?new Date(j.updated):new Date();
-        try{localStorage.setItem("pc",JSON.stringify({p:out,t:+t}))}catch(e){}
-        return {p:out,t};
+        // t = زمان آخرین استعلام واقعی از منبع؛ pt = زمان آخرین تغییر قیمت در منبع (tgju، وقت تهران)
+        let t=j.updated?new Date(j.updated):new Date(),pt=null;
+        if(isNaN(t))t=new Date();
+        if(j.priceTs){const d=new Date(String(j.priceTs).trim().replace(" ","T")+"+03:30");if(!isNaN(d))pt=d}
+        try{localStorage.setItem("pc",JSON.stringify({p:out,t:+t,pt:pt?+pt:0}))}catch(e){}
+        return {p:out,t,pt};
       }
     }catch(e){}
   }
@@ -232,14 +233,14 @@ $("qq").addEventListener("input",suggest);
 $("qb").addEventListener("click",()=>{$("sg").innerHTML="";ask()});
 $("qq").addEventListener("keydown",e=>{if(e.key==="Enter"){$("sg").innerHTML="";ask()}});
 
-let left=0,last=null,fail=false;
+let left=0,last=null,lastPt=null,fail=false;
 async function refresh(){
   if(!last){ // نمایش فوری آخرین قیمت ذخیره‌شده تا قیمت تازه برسد
-    try{const c=JSON.parse(localStorage.getItem("pc")||"null");if(c&&c.p){P=c.p;last=new Date(c.t);drawRows();calc();tick()}}catch(e){}
+    try{const c=JSON.parse(localStorage.getItem("pc")||"null");if(c&&c.p){P=c.p;last=new Date(c.t);lastPt=c.pt?new Date(c.pt):null;drawRows();calc();tick()}}catch(e){}
   }
   const d=await load();
   fail=!d;
-  if(d){P=d.p;last=d.t}
+  if(d){P=d.p;last=d.t;lastPt=d.pt}
   drawRows();calc();conv();left=CONFIG.REFRESH_SEC;tick();
 }
 function tick(){
@@ -248,7 +249,10 @@ function tick(){
   const age=Math.round((Date.now()-last)/60000),bad=fail||age>20;
   const hm=last.toLocaleTimeString("fa-IR",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Tehran"});
   el.className=bad?"err":"";
-  el.textContent="آخرین بروزرسانی: ساعت "+hm+(bad?" (بروز نشده)":"");
+  const fmt=d=>d.toLocaleTimeString("fa-IR",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Tehran"});
+  let txt="آخرین بروزرسانی: ساعت "+hm;
+  if(lastPt&&(last-lastPt)>60*60000)txt+=" (بیش از ۱ ساعت از آخرین تغییر قیمت)";
+  el.textContent=txt+(bad?" (بروز نشده)":"");
 }
 setInterval(()=>{left--;if(left<=0)refresh();else tick()},1000);
 refresh();
