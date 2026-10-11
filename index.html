@@ -32,6 +32,7 @@ input:focus,select:focus{outline:2px solid var(--acc);outline-offset:1px}
 .mini td,.mini th{padding:5px 6px;font-size:.9rem}
 small{color:var(--mute)}
 .call{display:block;background:#0f6b4f;color:#fff;text-align:center;padding:12px 14px;border-radius:10px;margin-bottom:16px;font-weight:600;text-decoration:none}.call b{font-weight:800;white-space:nowrap;direction:ltr;unicode-bidi:embed}.call:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.ask{display:flex;gap:8px}.ask button{padding:9px 16px;border:0;border-radius:7px;background:var(--acc);color:#fff;font:inherit;font-weight:600;cursor:pointer}.ask button:disabled{opacity:.6}section:target{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc)}.jump{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.jump a{flex:1 1 140px;text-align:center;padding:9px 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--ink);text-decoration:none;font-weight:600;font-size:.9rem}.jump a:hover,.jump a:focus-visible{border-color:var(--acc);color:var(--acc);outline:none}section[id]{scroll-margin-top:12px}html{scroll-behavior:smooth}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}#sg{margin-top:6px}#sg button{display:block;width:100%;text-align:right;background:none;border:0;border-bottom:1px solid var(--line);color:var(--ink);font:inherit;padding:7px 4px;cursor:pointer}#sg button:hover{background:var(--bg)}#ans{margin-top:12px;padding:10px 12px;border-right:3px solid var(--gold);background:var(--bg);border-radius:6px;white-space:pre-wrap;display:none}
 </style>
 </head>
 <body>
@@ -39,13 +40,17 @@ small{color:var(--mute)}
 <a class="call" href="tel:09193020016">خرید | فروش طلا و نقره معامله مطمئن / تماس و استعلام <b>09193020016</b></a>
 <header><h1>قیمت طلا، نقره و دلار</h1><div id="st">در حال دریافت…</div></header>
 
+<nav class="jump" aria-label="دسترسی سریع">
+<a href="#calc">ماشین حساب طلا</a><a href="#conv-sec">ماشین حساب تبدیل عیار</a><a href="#ai">هوش مصنوعی</a>
+</nav>
+
 <section>
 <h2>قیمت‌ها (تومان)</h2>
 <table><thead><tr><th>مورد</th><th>خرید</th><th>فروش</th></tr></thead><tbody id="rows"></tbody></table>
 </section>
 
 <div class="grid">
-<section>
+<section id="calc">
 <h2>ماشین حساب قیمت طلا</h2>
 <div class="row2">
 <div><label for="w">وزن (گرم)</label><input id="w" inputmode="decimal" placeholder="مثلاً ۵"></div>
@@ -60,7 +65,7 @@ small{color:var(--mute)}
 <div class="out" id="o1"></div>
 </section>
 
-<section>
+<section id="conv-sec">
 <h2>تبدیل عیار</h2>
 <label for="w2">وزن (گرم)</label><input id="w2" inputmode="decimal" placeholder="مثلاً ۱۰">
 <div class="row2">
@@ -71,13 +76,21 @@ small{color:var(--mute)}
 <table class="mini" id="eq"></table>
 </section>
 </div>
+<section id="ai">
+<h2>پرسش از ما (هوش مصنوعی)</h2>
+<div class="ask"><input id="qq" maxlength="200" placeholder="سوال خود را بنویسید…" aria-label="سوال"><button id="qb" type="button">بپرس</button></div>
+<div id="sg"></div>
+<div id="ans" aria-live="polite"></div>
+</section>
+
 <small>عیار را می‌توان به صورت ۷۵۰ یا ۱۸ وارد کرد. این صفحه فقط ابزار محاسبه است و توصیه مالی نیست.</small>
 <a class="call" style="margin:16px 0 0" href="tel:09193020016">خرید | فروش طلا و نقره معامله مطمئن / تماس و استعلام <b>09193020016</b></a>
 </main>
 
+<script src="faq.js"></script>
 <script>
 const CONFIG={
-  PROXY_URL:"https://gold-price943.akant4amir.workers.dev/",                                   // آدرس Cloudflare Worker (اختیاری)
+  PROXY_URL:"https://gold-price943.akant4amir.workers.dev/",   // آدرس Cloudflare Worker
   DATA_URL:"prices.json",   // فایلی که GitHub Action هر ۵ دقیقه بروز می‌کند
   REFRESH_SEC:60,
   SELL_DISCOUNT:{gold:1.5,silver:5,fx:1.5,coin:1.5} // درصد کمتر برای قیمت فروش
@@ -108,7 +121,13 @@ async function load(){
         const n=parseFloat(String(v||"").replace(/,/g,""));
         if(n>0){out[it.k]=n;ok++}
       }
-      if(ok)return {p:out,t:j.updated?new Date(j.updated):new Date()};
+      if(ok){
+        // زمان واقعی قیمت (tgju به وقت تهران می‌دهد)؛ اگر نبود، زمان فایل
+        let t=null;
+        if(j.priceTs){const d=new Date(String(j.priceTs).trim().replace(" ","T")+"+03:30");if(!isNaN(d))t=d}
+        if(!t)t=j.updated?new Date(j.updated):new Date();
+        return {p:out,t};
+      }
     }catch(e){}
   }
   return null;
@@ -146,6 +165,71 @@ function conv(){
 
 ["w","j","k","side","ov"].forEach(i=>$(i).addEventListener("input",calc));
 ["w2","f","t"].forEach(i=>$(i).addEventListener("input",conv));
+
+/* ===== پرسش از ما: نزدیک‌ترین جواب از faq.js ===== */
+const FA_STOP=new Set("و در به از که را این آن با برای یا هم تا یک است هست بود می میشه میشود چه چی چرا چطور چگونه کجا کی آیا من ما شما شد کرد کنم کنید کنیم باید دارم دارید داره دارین هستید بشه بشود اگه اگر خیلی لطفا لطفاً ممنون یعنی".split(" "));
+function faNorm(t){return String(t||"").toLowerCase()
+  .replace(/[۰-۹]/g,d=>"۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d))
+  .replace(/ي|ى/g,"ی").replace(/ك/g,"ک").replace(/[ۀة]/g,"ه").replace(/[أإآ]/g,"ا")
+  .replace(/[ً-ْـ]/g,"").replace(/‌/g," ")
+  .replace(/[^\p{L}\p{N}\s]/gu," ").replace(/\s+/g," ").trim()}
+function faStem(w){
+  for(const x of ["هایی","های","ها","ترین","تری","تر","ات","ان","ین","ام","ات","مان","تان","شان","یی","ی"]){
+    if(w.length>x.length+2&&w.endsWith(x))return w.slice(0,-x.length)}
+  return w}
+const faToks=t=>faNorm(t).split(" ").filter(w=>w&&!FA_STOP.has(w)).map(faStem);
+const faGrams=t=>{const s=" "+faNorm(t)+" ",g=new Map();for(let i=0;i<s.length-2;i++){const x=s.substr(i,3);g.set(x,(g.get(x)||0)+1)}return g};
+function faDice(a,b){let i=0,n=0,m=0;for(const[,v]of a){n+=v}for(const[,v]of b){m+=v}
+  for(const[k,v]of a){if(b.has(k))i+=Math.min(v,b.get(k))}return n+m?2*i/(n+m):0}
+function faWordSim(a,b){if(a===b)return 1;
+  if(a.length>=3&&b.length>=3&&(a.startsWith(b)||b.startsWith(a)))return .75;
+  if(a.length>=4&&b.length>=4){let c=0;while(c<a.length&&c<b.length&&a[c]===b[c])c++;if(c>=4&&c/Math.max(a.length,b.length)>=.6)return .55}
+  return 0}
+let FA_IDX=null;
+function faBuild(){
+  const df=new Map();
+  FA_IDX=(typeof FAQ!=="undefined"?FAQ:[]).filter(f=>f.q&&f.a).map(f=>{
+    const main=faToks((f.q||"")+" "+(f.k||"")),body=faToks(f.a||"");
+    new Set([...main,...body]).forEach(w=>df.set(w,(df.get(w)||0)+1));
+    return {f,main,body,g:faGrams((f.q||"")+" "+(f.k||""))}});
+  const N=FA_IDX.length||1;
+  FA_IDX.forEach(d=>d.idf=w=>Math.log(1+N/(1+(df.get(w)||0))));
+}
+function faRank(q){
+  if(!FA_IDX)faBuild();
+  const qt=faToks(q),qg=faGrams(q);
+  return FA_IDX.map(d=>{
+    let s=0,tot=0;
+    for(const w of qt){
+      const idf=d.idf(w);tot+=idf;
+      let best=0;for(const m of d.main)best=Math.max(best,faWordSim(w,m));
+      let bb=0;for(const m of d.body)bb=Math.max(bb,faWordSim(w,m)*.45);
+      s+=idf*Math.max(best,bb)}
+    const tok=tot?s/tot:0,dice=faDice(qg,d.g);
+    return {f:d.f,score:.65*tok+.35*dice}
+  }).sort((a,b)=>b.score-a.score)
+}
+function ask(){
+  const q=$("qq").value.trim(),a=$("ans");
+  if(!q)return;
+  const r=faRank(q);a.style.display="block";
+  if(!r.length){a.textContent="برای این سوال با ۰۹۱۹۳۰۲۰۰۱۶ تماس بگیرید.";return}
+  a.innerHTML="";
+  const ans=document.createElement("div");ans.textContent=r[0].f.a;a.appendChild(ans);
+  const more=r.slice(1,3).filter(x=>x.score>.15&&x.score>r[0].score*.5);
+  if(r[0].score<.2){const n=document.createElement("small");n.textContent="مطمئن نیستم دقیقاً همین را پرسیده‌اید؛ برای اطمینان با ۰۹۱۹۳۰۲۰۰۱۶ تماس بگیرید.";n.style.display="block";n.style.marginTop="6px";a.appendChild(n)}
+  if(more.length){const m=document.createElement("div");m.style.marginTop="8px";const h=document.createElement("small");h.textContent="سوال‌های نزدیک:";m.appendChild(h);
+    more.forEach(x=>{const b=document.createElement("button");b.type="button";b.textContent=x.f.q;b.style.cssText="display:block;background:none;border:0;color:var(--acc);font:inherit;cursor:pointer;padding:2px 0;text-align:right";b.onclick=()=>{$("qq").value=x.f.q;ask()};m.appendChild(b)});a.appendChild(m)}
+}
+function suggest(){
+  const q=$("qq").value.trim(),g=$("sg");g.innerHTML="";
+  if(q.length<2)return;
+  faRank(q).slice(0,4).filter(x=>x.score>.25).forEach(x=>{
+    const b=document.createElement("button");b.type="button";b.textContent=x.f.q;
+    b.onclick=()=>{$("qq").value=x.f.q;g.innerHTML="";ask()};g.appendChild(b)})}
+$("qq").addEventListener("input",suggest);
+$("qb").addEventListener("click",()=>{$("sg").innerHTML="";ask()});
+$("qq").addEventListener("keydown",e=>{if(e.key==="Enter"){$("sg").innerHTML="";ask()}});
 
 let left=0,last=null,fail=false;
 async function refresh(){
