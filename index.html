@@ -33,6 +33,14 @@ input:focus,select:focus{outline:2px solid var(--acc);outline-offset:1px}
 small{color:var(--mute)}
 .call{display:block;background:#0f6b4f;color:#fff;text-align:center;padding:12px 14px;border-radius:10px;margin-bottom:16px;font-weight:600;text-decoration:none}.call b{font-weight:800;white-space:nowrap;direction:ltr;unicode-bidi:embed}.call:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .ask{display:flex;gap:8px}.ask button{padding:9px 16px;border:0;border-radius:7px;background:var(--acc);color:#fff;font:inherit;font-weight:600;cursor:pointer}.ask button:disabled{opacity:.6}section:target{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc)}.jump{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.jump a{flex:1 1 140px;text-align:center;padding:9px 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--ink);text-decoration:none;font-weight:600;font-size:.9rem}.jump a:hover,.jump a:focus-visible{border-color:var(--acc);color:var(--acc);outline:none}section[id]{scroll-margin-top:12px}html{scroll-behavior:smooth}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}#sg{margin-top:6px}#sg button{display:block;width:100%;text-align:right;background:none;border:0;border-bottom:1px solid var(--line);color:var(--ink);font:inherit;padding:7px 4px;cursor:pointer}#sg button:hover{background:var(--bg)}#ans{margin-top:12px;padding:10px 12px;border-right:3px solid var(--gold);background:var(--bg);border-radius:6px;white-space:pre-wrap;display:none}
+.msgs{display:flex;flex-direction:column;gap:8px;max-height:380px;overflow-y:auto;padding:4px 2px;margin-bottom:10px}
+.m{max-width:85%;padding:8px 12px;border-radius:14px;white-space:pre-wrap;line-height:1.8;overflow-wrap:anywhere}
+.m.mu{align-self:flex-start;background:var(--acc);color:#fff;border-bottom-right-radius:4px}
+.m.mb{align-self:flex-end;background:var(--bg);border:1px solid var(--line);border-bottom-left-radius:4px}
+.dots span{display:inline-block;animation:bl 1.2s infinite;opacity:.25}.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+@keyframes bl{0%,60%,100%{opacity:.25}30%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.dots span{animation:none;opacity:.7}}
+#ai small{display:block;margin-top:8px}
 </style>
 </head>
 <body>
@@ -78,8 +86,9 @@ small{color:var(--mute)}
 </div>
 <section id="ai">
 <h2>پرسش از ما (هوش مصنوعی)</h2>
-<div class="ask"><input id="qq" maxlength="200" placeholder="سوال خود را بنویسید…" aria-label="سوال"><button id="qb" type="button">بپرس</button></div>
-<div id="ans" aria-live="polite"></div>
+<div id="msgs" class="msgs" role="log" aria-live="polite"></div>
+<div class="ask"><input id="qq" maxlength="2000" placeholder="پیام خود را بنویسید…" aria-label="پیام"><button id="qb" type="button">ارسال</button></div>
+<small>پاسخ‌ها را هوش مصنوعی می‌نویسد و ممکن است اشتباه باشد. قیمت‌ها را از جدول بالا ببینید و برای معامله تماس بگیرید.</small>
 </section>
 
 <small>عیار را می‌توان به صورت ۷۵۰ یا ۱۸ وارد کرد. این صفحه فقط ابزار محاسبه است و توصیه مالی نیست.</small>
@@ -90,7 +99,7 @@ small{color:var(--mute)}
 const CONFIG={
   PROXY_URL:"https://gold-price943.akant4amir.workers.dev/",   // آدرس Cloudflare Worker
   DATA_URL:"prices.json",   // فایلی که GitHub Action هر ۵ دقیقه بروز می‌کند
-  AI_URL:"https://ai.akant4amir.workers.dev/",   // آدرس Worker هوش مصنوعی (ai-worker)
+  AI_URL:"",   // آدرس Worker هوش مصنوعی (ai-worker)
   REFRESH_SEC:60,
   SELL_DISCOUNT:{gold:1.5,silver:5,fx:1.5,coin:1.5} // درصد کمتر برای قیمت فروش
 };
@@ -167,23 +176,47 @@ function conv(){
 ["w","j","k","side","ov"].forEach(i=>$(i).addEventListener("input",calc));
 ["w2","f","t"].forEach(i=>$(i).addEventListener("input",conv));
 
-/* ===== پرسش از ما: پاسخ مستقیم هوش مصنوعی ===== */
+/* ===== پرسش از ما: چت با هوش مصنوعی ===== */
+const HIST=[];
+function addMsg(cls,txt){
+  const d=document.createElement("div");d.className="m "+cls;d.textContent=txt||"";
+  $("msgs").appendChild(d);scrollChat();return d}
+function scrollChat(){const c=$("msgs");c.scrollTop=c.scrollHeight}
+addMsg("mb","سلام! من یارا هستم. هر سوالی درباره‌ی طلا و نقره دارید بپرسید.");
 async function ask(){
-  const q=$("qq").value.trim(),a=$("ans"),b=$("qb");
-  if(!q)return;
-  a.style.display="block";
-  if(!CONFIG.AI_URL){a.textContent="این بخش هنوز فعال نشده است. برای سوال‌ها با ۰۹۱۹۳۰۲۰۰۱۶ تماس بگیرید.";return}
-  a.textContent="در حال پاسخ…";b.disabled=true;
+  const q=$("qq").value.trim(),btn=$("qb");
+  if(!q||btn.disabled)return;
+  $("qq").value="";addMsg("mu",q);
+  const bot=addMsg("mb","");
+  if(!CONFIG.AI_URL){bot.textContent="این بخش هنوز فعال نشده است. برای سوال‌ها با ۰۹۱۹۳۰۲۰۰۱۶ تماس بگیرید.";return}
+  bot.innerHTML='<span class="dots">در حال تفکر<span>.</span><span>.</span><span>.</span></span> صبور باشید';
+  btn.disabled=true;
+  let got="";
   try{
-    const res=await fetch(CONFIG.AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},signal:AbortSignal.timeout(45000),body:JSON.stringify({question:q})});
-    const j=await res.json();
-    if(!j.answer)throw new Error("no answer");
-    a.innerHTML="";
-    const t=document.createElement("div");t.textContent=j.answer;a.appendChild(t);
-    const n=document.createElement("small");n.style.cssText="display:block;margin-top:6px";
-    n.textContent="پاسخ هوش مصنوعی؛ برای قیمت‌ها جدول بالا و برای معامله با ۰۹۱۹۳۰۲۰۰۱۶ تماس بگیرید.";a.appendChild(n);
-  }catch(e){a.textContent="الان پاسخ‌گو در دسترس نیست. لطفاً کمی بعد دوباره تلاش کنید یا با ۰۹۱۹۳۰۲۰۰۱۶ تماس بگیرید."}
-  b.disabled=false;
+    const res=await fetch(CONFIG.AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},signal:AbortSignal.timeout(90000),
+      body:JSON.stringify({question:q,stream:true,history:HIST.slice(-8)})});
+    const ct=res.headers.get("content-type")||"";
+    if(ct.includes("event-stream")&&res.body){
+      const rd=res.body.getReader(),dec=new TextDecoder();let buf="";
+      for(;;){
+        const {done,value}=await rd.read();if(done)break;
+        buf+=dec.decode(value,{stream:true});
+        const lines=buf.split("\n");buf=lines.pop();
+        for(const ln of lines){
+          if(!ln.startsWith("data:"))continue;
+          const d=ln.slice(5).trim();if(!d||d==="[DONE]")continue;
+          try{const o=JSON.parse(d);const tok=o.response!==undefined?o.response:(o.choices&&o.choices[0]&&((o.choices[0].delta&&o.choices[0].delta.content)||(o.choices[0].message&&o.choices[0].message.content)))||"";
+            if(tok){got+=tok;bot.textContent=got;scrollChat()}}catch(e){}
+        }
+      }
+    }else{
+      const j=await res.json();if(j.answer){got=j.answer;bot.textContent=got}
+    }
+    if(!got.trim())throw new Error("no answer");
+    HIST.push({role:"user",content:q},{role:"assistant",content:got});
+  }catch(e){
+    if(!got.trim())bot.textContent="الان پاسخ‌گو در دسترس نیست. لطفاً کمی بعد دوباره تلاش کنید یا با ۰۹۱۹۳۰۲۰۰۱۶ تماس بگیرید."}
+  btn.disabled=false;$("qq").focus();scrollChat();
 }
 $("qb").addEventListener("click",ask);
 $("qq").addEventListener("keydown",e=>{if(e.key==="Enter")ask()});
