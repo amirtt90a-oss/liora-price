@@ -18,7 +18,8 @@ section{background:var(--card);border:1px solid var(--line);border-radius:10px;p
 table{width:100%;border-collapse:collapse}
 th,td{padding:9px 6px;text-align:right;border-bottom:1px solid var(--line)}
 th{font-weight:600;color:var(--mute);font-size:.85rem}tr:last-child td{border:0}
-td.n{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.n{font-weight:800;font-size:1.12rem;letter-spacing:.3px;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;white-space:nowrap}
+@media(max-width:420px){td.n{font-size:1rem;letter-spacing:0}}
 .b{color:var(--buy)}.s{color:var(--sell)}.u{font-size:.75rem;color:var(--mute);font-weight:400}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 @media(max-width:760px){.grid{grid-template-columns:1fr}}
@@ -41,11 +42,14 @@ small{color:var(--mute)}
 @keyframes bl{0%,60%,100%{opacity:.25}30%{opacity:1}}
 @media(prefers-reduced-motion:reduce){.dots span{animation:none;opacity:.7}}
 #ai small{display:block;margin-top:8px}
+.hol{background:var(--card);border:1px solid var(--gold);border-right-width:5px;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-weight:600;line-height:1.8}.hol a{color:var(--acc);white-space:nowrap;direction:ltr;unicode-bidi:embed}
+.tabs{display:flex;gap:6px;margin-bottom:6px}.tabs button{flex:1;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:.9rem;cursor:pointer}.tabs button[aria-selected=true]{background:var(--acc);color:#fff;border-color:var(--acc)}
 </style>
 </head>
 <body>
 <main>
 <a class="call" href="tel:09193020016">خرید | فروش طلا و نقره معامله مطمئن / تماس و استعلام <b>09193020016</b></a>
+<div id="hol" class="hol" hidden>بازار پنجشنبه و جمعه تعطیل است. برای دریافت قیمت با شماره <a href="tel:09193020016">09193020016</a> تماس بگیرید.</div>
 <header><h1>قیمت طلا، نقره و دلار</h1><div id="st">در حال دریافت…</div></header>
 
 <nav class="jump" aria-label="دسترسی سریع">
@@ -74,7 +78,9 @@ small{color:var(--mute)}
 </section>
 
 <section id="conv-sec">
-<h2>تبدیل عیار</h2>
+<h2>تبدیل عیار، مثقال و سکه</h2>
+<div class="tabs" role="tablist"><button type="button" role="tab" id="tb1" aria-selected="true">تبدیل عیار</button><button type="button" role="tab" id="tb2" aria-selected="false">مثقال و سکه</button></div>
+<div id="tab-conv">
 <label for="w2">وزن (گرم)</label><input id="w2" inputmode="decimal" placeholder="مثلاً ۱۰">
 <div class="row2">
 <div><label for="f">از عیار</label><input id="f" inputmode="decimal" placeholder="مثلاً ۷۵۰"></div>
@@ -82,6 +88,17 @@ small{color:var(--mute)}
 </div>
 <div class="out" id="o2"></div>
 <table class="mini" id="eq"></table>
+</div>
+<div id="tab-mc" hidden>
+<label for="mz">مظنه (قیمت هر مثقال، تومان؛ خالی = قیمت زنده)</label><input id="mz" inputmode="decimal" placeholder="خالی = مظنه زنده">
+<div class="out" id="o3"></div>
+<div class="row2">
+<div><label for="mg">وزن (گرم)</label><input id="mg" inputmode="decimal" placeholder="مثلاً ۱۰"></div>
+<div><label for="mm">وزن (مثقال)</label><input id="mm" inputmode="decimal" placeholder="مثلاً ۲"></div>
+</div>
+<label for="cn">تعداد سکه</label><input id="cn" inputmode="decimal" placeholder="مثلاً ۲">
+<div class="out" id="o4"></div>
+</div>
 </section>
 </div>
 <section id="ai">
@@ -106,6 +123,7 @@ const CONFIG={
 const ITEMS=[
   {k:"geram18",n:"طلای ۱۸ عیار (گرم)",g:"gold"},
   {k:"geram24",n:"طلای ۲۴ عیار (گرم)",g:"gold"},
+  {k:"mesghal",n:"مثقال طلا",g:"gold"},
   {k:"silver_999",n:"نقره ۹۹۹ (گرم)",g:"silver"},
   {k:"price_dollar_rl",n:"دلار",g:"fx"},
   {k:"sekee",n:"سکه تمام (امامی)",g:"coin"},
@@ -129,6 +147,7 @@ async function load(){
         const n=parseFloat(String(v||"").replace(/,/g,""));
         if(n>0){out[it.k]=n;ok++}
       }
+      if(out.geram18&&!out.mesghal)out.mesghal=Math.round(out.geram18*4.3318);   // اگر Worker هنوز مثقال نمی‌دهد
       if(ok){
         // زمان واقعی قیمت (tgju به وقت تهران می‌دهد)؛ اگر نبود، زمان فایل
         // t = زمان آخرین استعلام واقعی از منبع؛ pt = زمان آخرین تغییر قیمت در منبع (tgju، وقت تهران)
@@ -189,9 +208,11 @@ async function ask(){
   $("qq").value="";addMsg("mu",q);
   const bot=addMsg("mb","");
   if(!CONFIG.AI_URL){bot.textContent="این بخش هنوز فعال نشده است. برای سوال‌ها با ۰۹۱۹۳۰۲۰۰۱۶ تماس بگیرید.";return}
-  bot.innerHTML='<span class="dots">در حال تفکر<span>.</span><span>.</span><span>.</span></span> صبور باشید';
+  bot.innerHTML='<span class="dots">در حال تفکر<span>.</span><span>.</span><span>.</span></span> صبور باشید <b class="cd"></b>';
   btn.disabled=true;
-  let got="";
+  let got="",sec=18;
+  const cd=bot.querySelector(".cd");cd.textContent="("+fa(sec)+")";
+  const timer=setInterval(()=>{sec--;cd.textContent=sec>=0?"("+fa(sec)+")":"(کمی بیشتر از معمول طول کشید)"},1000);
   try{
     const res=await fetch(CONFIG.AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},signal:AbortSignal.timeout(90000),
       body:JSON.stringify({question:q,stream:true,history:HIST.slice(-8)})});
@@ -206,20 +227,43 @@ async function ask(){
           if(!ln.startsWith("data:"))continue;
           const d=ln.slice(5).trim();if(!d||d==="[DONE]")continue;
           try{const o=JSON.parse(d);const tok=o.response!==undefined?o.response:(o.choices&&o.choices[0]&&((o.choices[0].delta&&o.choices[0].delta.content)||(o.choices[0].message&&o.choices[0].message.content)))||"";
-            if(tok){got+=tok;bot.textContent=got;scrollChat()}}catch(e){}
+            if(tok){if(!got)clearInterval(timer);got+=tok;bot.textContent=got;scrollChat()}}catch(e){}
         }
       }
     }else{
-      const j=await res.json();if(j.answer){got=j.answer;bot.textContent=got}
+      const j=await res.json();if(j.answer){clearInterval(timer);got=j.answer;bot.textContent=got}
     }
     if(!got.trim())throw new Error("no answer");
     HIST.push({role:"user",content:q},{role:"assistant",content:got});
   }catch(e){
     if(!got.trim())bot.textContent="الان پاسخ‌گو در دسترس نیست. لطفاً کمی بعد دوباره تلاش کنید یا با ۰۹۱۹۳۰۲۰۰۱۶ تماس بگیرید."}
-  btn.disabled=false;$("qq").focus();scrollChat();
+  clearInterval(timer);btn.disabled=false;$("qq").focus();scrollChat();
 }
 $("qb").addEventListener("click",ask);
 $("qq").addEventListener("keydown",e=>{if(e.key==="Enter")ask()});
+
+/* مثقال و سکه */
+const MESGHAL=4.3318;   // گرم؛ طبق فرمول مظنه
+function mc(){
+  const rowf=(a,b,c)=>`<div${c?` class="${c}"`:""}><span>${a}</span><span>${b}</span></div>`;
+  const mzIn=num($("mz").value),mz=mzIn>0?mzIn:(P.mesghal?toman(P.mesghal):0);
+  $("o3").innerHTML=mz>0?rowf("قیمت هر گرم (مظنه ÷ ۴٫۳۳۱۸)",fa(Math.round(mz/MESGHAL))+" تومان","t"):"<small>قیمت زنده در دسترس نیست؛ مظنه را وارد کنید.</small>";
+  const n=num($("cn").value);
+  if(!(n>0)){$("o4").innerHTML="<small>تعداد سکه را وارد کنید.</small>";return}
+  if(!P.sekee&&!P.sekeb){$("o4").innerHTML="<small>قیمت زنده در دسترس نیست.</small>";return}
+  let o="";
+  for(const [k,nm] of [["sekee","سکه تمام (امامی)"],["sekeb","سکه بهار آزادی"]]){
+    if(!P[k])continue;
+    o+=rowf(fa(n)+" × "+nm+" (خرید)",fa(Math.round(toman(P[k])*n))+" تومان")+rowf(fa(n)+" × "+nm+" (فروش)",fa(Math.round(toman(sell(P[k],"coin"))*n))+" تومان");
+  }
+  $("o4").innerHTML=o;
+}
+$("mz").addEventListener("input",mc);$("cn").addEventListener("input",mc);
+$("mg").addEventListener("input",()=>{const g=num($("mg").value);$("mm").value=g>0?+(g/MESGHAL).toFixed(4):""});
+$("mm").addEventListener("input",()=>{const m=num($("mm").value);$("mg").value=m>0?+(m*MESGHAL).toFixed(3):""});
+function tab(n){$("tab-conv").hidden=n!==1;$("tab-mc").hidden=n!==2;$("tb1").setAttribute("aria-selected",n===1);$("tb2").setAttribute("aria-selected",n===2)}
+$("tb1").addEventListener("click",()=>tab(1));$("tb2").addEventListener("click",()=>tab(2));
+mc();
 
 let left=0,last=null,lastPt=null,fail=false;
 async function refresh(){
@@ -229,17 +273,21 @@ async function refresh(){
   const d=await load();
   fail=!d;
   if(d){P=d.p;last=d.t;lastPt=d.pt}
-  drawRows();calc();conv();left=CONFIG.REFRESH_SEC;tick();
+  drawRows();calc();conv();mc();left=CONFIG.REFRESH_SEC;tick();
 }
+function isHoliday(){ // پنجشنبه و جمعه به وقت تهران
+  const d=new Intl.DateTimeFormat("en-US",{weekday:"long",timeZone:"Asia/Tehran"}).format(new Date());
+  return d==="Thursday"||d==="Friday"}
 function tick(){
   const el=$("st");
+  $("hol").hidden=!isHoliday();
   if(!last){el.className="err";el.textContent="اتصال به منبع قیمت برقرار نشد؛ تلاش مجدد تا "+fa(left)+" ثانیه";return}
   const age=Math.round((Date.now()-last)/60000),bad=fail||age>20;
   const hm=last.toLocaleTimeString("fa-IR",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Tehran"});
   el.className=bad?"err":"";
   const fmt=d=>d.toLocaleTimeString("fa-IR",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Tehran"});
   let txt="آخرین بروزرسانی: ساعت "+hm;
-  if(lastPt&&(last-lastPt)>60*60000)txt+=" (بیش از ۱ ساعت از آخرین تغییر قیمت)";
+  if(!isHoliday()&&lastPt&&(last-lastPt)>60*60000)txt+=" (بیش از ۱ ساعت از آخرین تغییر قیمت)";
   el.textContent=txt+(bad?" (بروز نشده)":"");
 }
 setInterval(()=>{left--;if(left<=0)refresh();else tick()},1000);
