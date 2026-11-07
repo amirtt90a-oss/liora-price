@@ -44,6 +44,7 @@ small{color:var(--mute)}
 #ai small{display:block;margin-top:8px}
 .hol{background:var(--card);border:1px solid var(--gold);border-right-width:5px;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-weight:600;line-height:1.8}.hol a{color:var(--acc);white-space:nowrap;direction:ltr;unicode-bidi:embed}
 .tabs{display:flex;gap:6px;margin-bottom:6px}.tabs button{flex:1;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:.9rem;cursor:pointer}.tabs button[aria-selected=true]{background:var(--acc);color:#fff;border-color:var(--acc)}
+.rnote{margin:0 0 10px;color:var(--mute);font-size:.9rem}.rres{margin-top:12px}.rcard{border:1px solid var(--line);border-right:4px solid var(--gold);border-radius:8px;padding:10px 12px;margin-bottom:8px;background:var(--bg)}.rcard .big{font-size:1.5rem;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums}.rcard div{padding:2px 0}#ray small{display:block;margin-top:8px}
 </style>
 </head>
 <body>
@@ -53,7 +54,7 @@ small{color:var(--mute)}
 <header><h1>قیمت طلا، نقره و دلار</h1><div id="st">در حال دریافت…</div></header>
 
 <nav class="jump" aria-label="دسترسی سریع">
-<a href="#calc">ماشین حساب طلا</a><a href="#conv-sec">ماشین حساب تبدیل عیار</a><a href="#ai">هوش مصنوعی</a>
+<a href="#calc">ماشین حساب طلا</a><a href="#conv-sec">ماشین حساب تبدیل عیار</a><a href="#ray">استعلام انگ و ری</a>
 </nav>
 
 <section>
@@ -101,11 +102,12 @@ small{color:var(--mute)}
 </div>
 </section>
 </div>
-<section id="ai">
-<h2>پرسش از ما (هوش مصنوعی)</h2>
-<div id="msgs" class="msgs" role="log" aria-live="polite"></div>
-<div class="ask"><input id="qq" maxlength="2000" placeholder="پیام خود را بنویسید…" aria-label="پیام"><button id="qb" type="button">ارسال</button></div>
-<small>پاسخ‌ها را هوش مصنوعی می‌نویسد و ممکن است اشتباه باشد. قیمت‌ها را از جدول بالا ببینید و برای معامله تماس بگیرید.</small>
+<section id="ray">
+<h2>استعلام انگ و ری</h2>
+<p class="rnote">شماره‌ی روی پاکت را وارد کنید تا عیار آن نمایش داده شود.</p>
+<div class="ask"><input id="rc" inputmode="numeric" maxlength="15" placeholder="شماره پاکت، مثلاً ۱۲۳۴۵۶" aria-label="شماره پاکت"><button id="rb" type="button">استعلام</button></div>
+<div id="rr" class="rres" aria-live="polite" hidden></div>
+<small>نتیجه از سامانه‌ی ریگیری دریافت می‌شود. در صورت مغایرت با آزمایشگاه مربوطه تماس بگیرید.</small>
 </section>
 
 <small>عیار را می‌توان به صورت ۷۵۰ یا ۱۸ وارد کرد. این صفحه فقط ابزار محاسبه است و توصیه مالی نیست.</small>
@@ -116,7 +118,7 @@ small{color:var(--mute)}
 const CONFIG={
   PROXY_URL:"https://gold-price943.akant4amir.workers.dev/",   // آدرس Cloudflare Worker
   DATA_URL:"prices.json",   // فایلی که GitHub Action هر ۵ دقیقه بروز می‌کند
-  AI_URL:"https://ai.akant4amir.workers.dev/",   // آدرس Worker هوش مصنوعی (ai-worker)
+  RAY_URL:"https://ray.akant4amir.workers.dev/",   // آدرس Worker استعلام انگ و ری (ray-worker)
   REFRESH_SEC:60,
   SELL_DISCOUNT:{gold:1.5,silver:5,fx:1.5,coin:1.5} // درصد کمتر برای قیمت فروش
 };
@@ -195,52 +197,39 @@ function conv(){
 ["w","j","k","side","ov"].forEach(i=>$(i).addEventListener("input",calc));
 ["w2","f","t"].forEach(i=>$(i).addEventListener("input",conv));
 
-/* ===== پرسش از ما: چت با هوش مصنوعی ===== */
-const HIST=[];
-function addMsg(cls,txt){
-  const d=document.createElement("div");d.className="m "+cls;d.textContent=txt||"";
-  $("msgs").appendChild(d);scrollChat();return d}
-function scrollChat(){const c=$("msgs");c.scrollTop=c.scrollHeight}
-addMsg("mb","سلام! من یارا هستم. هر سوالی درباره‌ی طلا و نقره دارید بپرسید.");
-async function ask(){
-  const q=$("qq").value.trim(),btn=$("qb");
-  if(!q||btn.disabled)return;
-  $("qq").value="";addMsg("mu",q);
-  const bot=addMsg("mb","");
-  if(!CONFIG.AI_URL){bot.textContent="این بخش هنوز فعال نشده است. برای سوال‌ها با ۰۹۱۹۳۰۲۰۰۱۶ تماس بگیرید.";return}
-  bot.innerHTML='<span class="dots">در حال تفکر<span>.</span><span>.</span><span>.</span></span> صبور باشید <b class="cd"></b>';
-  btn.disabled=true;
-  let got="",sec=18;
-  const cd=bot.querySelector(".cd");cd.textContent="("+fa(sec)+")";
-  const timer=setInterval(()=>{sec--;cd.textContent=sec>=0?"("+fa(sec)+")":"(کمی بیشتر از معمول طول کشید)"},1000);
+
+/* ===== استعلام انگ و ری ===== */
+async function rayAsk(){
+  const box=$("rr"),btn=$("rb");
+  const code=$("rc").value.replace(/[۰-۹]/g,d=>"۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/\s/g,"");
+  box.hidden=false;box.textContent="";
+  const msg=t=>{box.textContent=t};
+  if(!/^[0-9]{1,15}$/.test(code)){msg("شماره پاکت را فقط با رقم وارد کنید.");return}
+  if(!CONFIG.RAY_URL){msg("این بخش هنوز فعال نشده است.");return}
+  btn.disabled=true;msg("در حال استعلام…");
   try{
-    const res=await fetch(CONFIG.AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},signal:AbortSignal.timeout(90000),
-      body:JSON.stringify({question:q,stream:true,history:HIST.slice(-8)})});
-    const ct=res.headers.get("content-type")||"";
-    if(ct.includes("event-stream")&&res.body){
-      const rd=res.body.getReader(),dec=new TextDecoder();let buf="";
-      for(;;){
-        const {done,value}=await rd.read();if(done)break;
-        buf+=dec.decode(value,{stream:true});
-        const lines=buf.split("\n");buf=lines.pop();
-        for(const ln of lines){
-          if(!ln.startsWith("data:"))continue;
-          const d=ln.slice(5).trim();if(!d||d==="[DONE]")continue;
-          try{const o=JSON.parse(d);const tok=o.response!==undefined?o.response:(o.choices&&o.choices[0]&&((o.choices[0].delta&&o.choices[0].delta.content)||(o.choices[0].message&&o.choices[0].message.content)))||"";
-            if(tok){if(!got)clearInterval(timer);got+=tok;bot.textContent=got;scrollChat()}}catch(e){}
-        }
+    const res=await fetch(CONFIG.RAY_URL,{method:"POST",headers:{"Content-Type":"application/json"},signal:AbortSignal.timeout(15000),body:JSON.stringify({code})});
+    const j=await res.json();
+    if(res.status===429){msg("لطفاً چند ثانیه صبر کنید و دوباره استعلام بگیرید.");}
+    else if(!j.ok){msg("امکان استعلام در حال حاضر وجود ندارد. لطفاً کمی بعد دوباره تلاش کنید یا با ۰۹۱۹۳۰۲۰۰۱۶ تماس بگیرید.");}
+    else if(!j.items.length){msg("برای این شماره نتیجه‌ای پیدا نشد. شماره را دوباره بررسی کنید.");}
+    else{
+      box.textContent="";
+      for(const it of j.items){
+        const c=document.createElement("div");c.className="rcard";
+        const add=(t,cls)=>{const d=document.createElement("div");if(cls)d.className=cls;d.textContent=t;c.appendChild(d)};
+        if(it.purity!=null)add("عیار: "+fa(it.purity)+" (معادل "+fa(+(it.purity*24/1000).toFixed(1))+" عیار)","big");
+        if(it.title)add("نوع: "+it.title);
+        add("شماره پاکت: "+fa(+it.code,0).replace(/٬/g,"")+(it.series?" — سری "+fa(+it.series):""));
+        if(it.date)add("تاریخ ثبت: "+it.date.replace(/[0-9]/g,d=>"۰۱۲۳۴۵۶۷۸۹"[d]));
+        box.appendChild(c);
       }
-    }else{
-      const j=await res.json();if(j.answer){clearInterval(timer);got=j.answer;bot.textContent=got}
     }
-    if(!got.trim())throw new Error("no answer");
-    HIST.push({role:"user",content:q},{role:"assistant",content:got});
-  }catch(e){
-    if(!got.trim())bot.textContent="الان پاسخ‌گو در دسترس نیست. لطفاً کمی بعد دوباره تلاش کنید یا با ۰۹۱۹۳۰۲۰۰۱۶ تماس بگیرید."}
-  clearInterval(timer);btn.disabled=false;$("qq").focus();scrollChat();
+  }catch(e){msg("امکان استعلام در حال حاضر وجود ندارد. لطفاً کمی بعد دوباره تلاش کنید.")}
+  btn.disabled=false;
 }
-$("qb").addEventListener("click",ask);
-$("qq").addEventListener("keydown",e=>{if(e.key==="Enter")ask()});
+$("rb").addEventListener("click",rayAsk);
+$("rc").addEventListener("keydown",e=>{if(e.key==="Enter")rayAsk()});
 
 /* مثقال و سکه */
 const MESGHAL=4.3318;   // گرم؛ طبق فرمول مظنه
