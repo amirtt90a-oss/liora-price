@@ -45,6 +45,7 @@ small{color:var(--mute)}
 .hol{background:var(--card);border:1px solid var(--gold);border-right-width:5px;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-weight:600;line-height:1.8}.hol a{color:var(--acc);white-space:nowrap;direction:ltr;unicode-bidi:embed}
 .tabs{display:flex;gap:6px;margin-bottom:6px}.tabs button{flex:1;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:.9rem;cursor:pointer}.tabs button[aria-selected=true]{background:var(--acc);color:#fff;border-color:var(--acc)}
 .rnote{margin:0 0 10px;color:var(--mute);font-size:.9rem}.rres{margin-top:12px}.rcard{border:1px solid var(--line);border-right:4px solid var(--gold);border-radius:8px;padding:10px 12px;margin-bottom:8px;background:var(--bg)}.rcard .big{font-size:1.5rem;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums}.rcard div{padding:2px 0}#ray small{display:block;margin-top:8px}
+.rhead{font-weight:700;color:var(--ink)}.rwarn{background:var(--bg);border:1px solid var(--gold);border-radius:8px;padding:8px 12px;margin-bottom:8px;font-weight:600}
 </style>
 </head>
 <body>
@@ -118,7 +119,7 @@ small{color:var(--mute)}
 const CONFIG={
   PROXY_URL:"https://gold-price943.akant4amir.workers.dev/",   // آدرس Cloudflare Worker
   DATA_URL:"prices.json",   // فایلی که GitHub Action هر ۵ دقیقه بروز می‌کند
-  RAY_URL:"https://ray.akant4amir.workers.dev/",   // آدرس Worker استعلام انگ و ری (ray-worker)
+  RAY_URL:"https://gold-price943.akant4amir.workers.dev/ray",   // استعلام انگ و ری (همان Worker قیمت‌ها، مسیر /ray)
   REFRESH_SEC:60,
   SELL_DISCOUNT:{gold:1.5,silver:5,fx:1.5,coin:1.5} // درصد کمتر برای قیمت فروش
 };
@@ -155,7 +156,7 @@ async function load(){
         // t = زمان آخرین استعلام واقعی از منبع؛ pt = زمان آخرین تغییر قیمت در منبع (tgju، وقت تهران)
         let t=j.updated?new Date(j.updated):new Date(),pt=null;
         if(isNaN(t))t=new Date();
-        if(j.priceTs){const d=new Date(String(j.priceTs).trim().replace(" ","T")+"+03:30");if(!isNaN(d))pt=d}
+        if(j.priceTs){const d=new Date(String(j.priceTs).trim().replace(/[۰-۹]/g,x=>"۰۱۲۳۴۵۶۷۸۹".indexOf(x)).replace(" ","T")+"Z");if(!isNaN(d))pt=d}   // زمان tgju به وقت UTC است
         try{localStorage.setItem("pc",JSON.stringify({p:out,t:+t,pt:pt?+pt:0}))}catch(e){}
         return {p:out,t,pt};
       }
@@ -215,12 +216,14 @@ async function rayAsk(){
     else if(!j.items.length){msg("برای این شماره نتیجه‌ای پیدا نشد. شماره را دوباره بررسی کنید.");}
     else{
       box.textContent="";
+      if(j.items.length>1){const w=document.createElement("div");w.className="rwarn";w.textContent="برای این شماره چند نتیجه با سری‌های مختلف وجود دارد. نتیجه‌ی هم‌سری با پاکت خود را بخوانید.";box.appendChild(w)}
       for(const it of j.items){
         const c=document.createElement("div");c.className="rcard";
         const add=(t,cls)=>{const d=document.createElement("div");if(cls)d.className=cls;d.textContent=t;c.appendChild(d)};
+        add("پاکت "+fa(+it.code,0).replace(/٬/g,"")+(it.series?" — سری "+fa(+it.series):""),"rhead");
         if(it.purity!=null)add("عیار: "+fa(it.purity)+" (معادل "+fa(+(it.purity*24/1000).toFixed(1))+" عیار)","big");
         if(it.title)add("نوع: "+it.title);
-        add("شماره پاکت: "+fa(+it.code,0).replace(/٬/g,"")+(it.series?" — سری "+fa(+it.series):""));
+        if(it.lab)add("آزمایشگاه: "+it.lab);
         if(it.date)add("تاریخ ثبت: "+it.date.replace(/[0-9]/g,d=>"۰۱۲۳۴۵۶۷۸۹"[d]));
         box.appendChild(c);
       }
