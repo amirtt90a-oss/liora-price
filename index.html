@@ -46,6 +46,7 @@ small{color:var(--mute)}
 .tabs{display:flex;gap:6px;margin-bottom:6px}.tabs button{flex:1;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:.9rem;cursor:pointer}.tabs button[aria-selected=true]{background:var(--acc);color:#fff;border-color:var(--acc)}
 .rnote{margin:0 0 10px;color:var(--mute);font-size:.9rem}.rres{margin-top:12px}.rcard{border:1px solid var(--line);border-right:4px solid var(--gold);border-radius:8px;padding:10px 12px;margin-bottom:8px;background:var(--bg)}.rcard .big{font-size:1.5rem;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums}.rcard div{padding:2px 0}#ray small{display:block;margin-top:8px}
 .rhead{font-weight:700;color:var(--ink)}.rwarn{background:var(--bg);border:1px solid var(--gold);border-radius:8px;padding:8px 12px;margin-bottom:8px;font-weight:600}
+.rtitle{font-weight:700;margin:12px 0 6px}
 </style>
 </head>
 <body>
@@ -213,10 +214,11 @@ async function rayAsk(){
     const j=await res.json();
     if(res.status===429){msg("لطفاً چند ثانیه صبر کنید و دوباره استعلام بگیرید.");}
     else if(!j.ok){msg("امکان استعلام در حال حاضر وجود ندارد. لطفاً کمی بعد دوباره تلاش کنید یا با ۰۹۱۹۳۰۲۰۰۱۶ تماس بگیرید.");}
-    else if(!j.items.length){msg("برای این شماره نتیجه‌ای پیدا نشد. شماره را دوباره بررسی کنید.");}
+    else if(!j.items.length&&!(j.external&&j.external.length)){msg("برای این شماره نتیجه‌ای پیدا نشد. شماره را دوباره بررسی کنید.");}
     else{
       box.textContent="";
       if(j.items.length>1){const w=document.createElement("div");w.className="rwarn";w.textContent="برای این شماره چند نتیجه با سری‌های مختلف وجود دارد. نتیجه‌ی هم‌سری با پاکت خود را بخوانید.";box.appendChild(w)}
+      if(j.items.length){const t=document.createElement("div");t.className="rtitle";t.textContent="نتیجه‌ی ثبت‌شده";box.appendChild(t)}
       for(const it of j.items){
         const c=document.createElement("div");c.className="rcard";
         const add=(t,cls)=>{const d=document.createElement("div");if(cls)d.className=cls;d.textContent=t;c.appendChild(d)};
@@ -227,6 +229,15 @@ async function rayAsk(){
         if(it.date)add("تاریخ ثبت: "+it.date.replace(/[0-9]/g,d=>"۰۱۲۳۴۵۶۷۸۹"[d]));
         box.appendChild(c);
       }
+      if(j.external&&j.external.length){
+        const t=document.createElement("div");t.className="rtitle";t.textContent="لیست سراسری ("+fa(j.external.length)+" نتیجه)";box.appendChild(t);
+        const n=document.createElement("small");n.textContent="نتیجه‌ی آزمایشگاه‌های سراسر کشور برای همین شماره. نتیجه‌ی آزمایشگاهی را بخوانید که فلز شما را آزموده است.";box.appendChild(n);
+        const tb=document.createElement("table");tb.className="mini";
+        const hd=tb.insertRow();for(const x of ["آزمایشگاه","عیار"]){const th=document.createElement("th");th.textContent=x;hd.appendChild(th)}
+        for(const it of j.external){const r=tb.insertRow();r.insertCell().textContent=it.lab||"—";r.insertCell().textContent=it.purity!=null?fa(it.purity):"—"}
+        box.appendChild(tb);
+      }
+      if(j.partial){const n=document.createElement("small");n.textContent="بخشی از نتیجه‌ها در دسترس نبود؛ لطفاً کمی بعد دوباره تلاش کنید.";box.appendChild(n)}
     }
   }catch(e){msg("امکان استعلام در حال حاضر وجود ندارد. لطفاً کمی بعد دوباره تلاش کنید.")}
   btn.disabled=false;
